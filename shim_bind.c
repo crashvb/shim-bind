@@ -37,6 +37,12 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 	memcpy(&theaddr, addr, sizeof(theaddr));
 
+	if(ntohs(theaddr.sin_port) != 0)
+	{
+		port = ntohs(theaddr.sin_port);
+		end_port = ntohs(theaddr.sin_port);
+	}
+
 	int result;
 	do
 	{
