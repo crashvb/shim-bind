@@ -15,11 +15,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
+	int port = 7000, end_port = 7020;
+
 	static int (*real_bind)(int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
-	int port = 7777;
 	struct sockaddr_in theaddr;
 
 	if (!real_bind)
@@ -33,8 +35,17 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 		}
 	}
 
-	fprintf(stderr, "binding: port %d\n", port);
 	memcpy(&theaddr, addr, sizeof(theaddr));
-	theaddr.sin_port = htons((unsigned short)port);
-	return real_bind(sockfd, (struct sockaddr*)&theaddr, addrlen);
+
+	int result;
+	do
+	{
+		theaddr.sin_port = htons((unsigned short)port);
+		printf("shim_bind: trying port %d\n", port);
+		result = real_bind(sockfd, (struct sockaddr*)&theaddr, addrlen);
+		port++;
+	}while(result != 0 && errno == EADDRINUSE && port <= end_port);
+
+	if(result != 0) errno = EFAULT;
+	return result;
 }
