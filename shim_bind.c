@@ -19,7 +19,11 @@
 
 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-	int port = 7000, end_port = 7020;
+	const char * shim_bind_port = getenv("SHIM_BIND_PORT");
+	int port = shim_bind_port ? atoi(shim_bind_port) : 7000;
+
+	const char * shim_bind_end_port = getenv("SHIM_BIND_END_PORT");
+	int end_port = shim_bind_end_port ? atoi(shim_bind_end_port) : 7020;
 
 	static int (*real_bind)(int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
 	struct sockaddr_in theaddr;
